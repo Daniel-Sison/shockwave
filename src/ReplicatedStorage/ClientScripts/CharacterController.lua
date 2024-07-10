@@ -1,10 +1,13 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 local Knit = require(ReplicatedStorage.Packages.Knit)
-local Modules = ReplicatedStorage.Source.Modules
-local GeneralUI = require(Modules.General.GeneralUI)
 local Fusion = require(ReplicatedStorage.Packages.Fusion)
-
+local Modules = ReplicatedStorage.Source.Modules
+local UtilityModule = require(Modules.UtilityModule)
+local Trove = require(ReplicatedStorage.Util:FindFirstChild(
+    "trove",
+    true
+))
 
 -- Create the service:
 local CharacterController = Knit.CreateController {
@@ -15,14 +18,7 @@ local CharacterController = Knit.CreateController {
 ------------- Static Variables ---------------
 ----------------------------------------------
 
-local CharacterService
-local DataSaveService
-local DefaultAnimationController
 
-local Trove = require(ReplicatedStorage.Util:FindFirstChild(
-    "trove",
-    true
-))
 
 ----------------------------------------------
 -------------- Public Methods ----------------
@@ -111,21 +107,6 @@ end
 
 
 
-
-function CharacterController:GetAllCharacters(): {Model?}
-    local characters = {}
-    for _, player in ipairs(game.Players:GetChildren()) do
-        if not player.Character then
-            continue
-        end
-
-        table.insert(characters, player.Character)
-    end
-    return characters
-end
-
-
-
 ----------------------------------------------
 -------------- Private Methods ---------------
 ----------------------------------------------
@@ -136,31 +117,13 @@ end
 ----------------------------------------------
 
 function CharacterController:KnitInit()
-    CharacterService = Knit.GetService("CharacterService")
-    DataSaveService = Knit.GetService("DataSaveService")
-    DefaultAnimationController = Knit.GetController("DefaultAnimationController")
-
     -- Connections will get stored in the trove to be cleaned later
     self.Trove = Trove.new()
-
-    -- This variable is a fusion value, other things are able to listen to this
-    -- variable being changed.
-    self.PlayerData = Fusion.Value({})
 end
 
 
 function CharacterController:KnitStart()
-    CharacterService.CharacterUpdated:Connect(function(character : Model?)
-        local humanoid = character:WaitForChild("Humanoid")
-        workspace.CurrentCamera.CameraSubject = humanoid
-
-        DefaultAnimationController:Setup(character)
-    end)
-
-    -- When server's player stats are updated, send that data directly to the client.
-    DataSaveService.DataUpdated:Connect(function(playerStats: {})
-        self.PlayerData:set(playerStats)
-    end)
+    
 end
 
 
